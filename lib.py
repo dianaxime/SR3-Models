@@ -8,10 +8,24 @@
 
 from utils import color, char, word, dword
 from obj import Obj
+import random
+from collections import namedtuple
 
+'''
+    ****************************************
+'''
+V2 = namedtuple('Vertex2', ['x', 'y'])
+V3 = namedtuple('Vertex3', ['x', 'y', 'z'])
+
+'''
+    ****************************************
+'''
 BLACK = color(0, 0, 0)
 WHITE = color(255, 255, 255)
 
+'''
+    ****************************************
+'''
 class Render(object):
     def __init__(self):
         self.framebuffer = []
@@ -21,9 +35,9 @@ class Render(object):
         self.width = width
         self.height = height
 
-    def point(self, x, y):
+    def point(self, x, y, selectColor = None):
         try:
-            self.framebuffer[y][x] = self.color
+            self.framebuffer[y][x] = selectColor or  self.color
         except:
             pass
 
@@ -92,25 +106,139 @@ class Render(object):
                 y += inc
                 threshold += 2 * dx
 
+    def triangle(self, A, B, C, selectColor = None):
+        if A.y > B.y:
+            A, B = B, A
+        if A.y > C.y:
+            A, C = C, A
+        if B.y > C.y:
+            B, C = C, B
+
+        dx_ac = C.x - A.x
+        dy_ac = C.y - A.y
+
+        if dy_ac == 0:
+            return
+
+        mi_ac = dx_ac/dy_ac
+
+        dx_ab = B.x - A.x
+        dy_ab = B.y - A.y
+
+        if dy_ab != 0:
+            mi_ab = dx_ab/dy_ab
+
+            for y in range(A.y, B.y + 1):
+                xi = round(A.x - mi_ac * (A.y - y))
+                xf = round(A.x - mi_ab * (A.y - y))
+
+                if xi > xf:
+                    xi, xf = xf, xi
+                for x in range(xi, xf + 1):
+                    self.point(x, y, selectColor)
+
+        dx_bc = C.x - B.x
+        dy_bc = C.y - B.y
+
+        if dy_bc:
+
+            mi_bc = dx_bc/dy_bc
+
+            for y in range(B.y, C.y + 1):
+                xi = round(A.x - mi_ac * (A.y - y))
+                xf = round(B.x - mi_bc * (B.y - y))
+
+                if xi > xf:
+                    xi, xf = xf, xi
+                for x in range(xi, xf + 1):
+                    self.point(x, y, selectColor)
+
     def load(self, filename, translate, scale):
         model = Obj(filename)
         
         for face in model.faces:
             vcount = len(face)
 
-            for j in range(vcount):
-                f1 = face[j][0]
-                f2 = face[(j + 1) % vcount][0]
+            if vcount == 3:
+                f1 = face[0][0] - 1
+                f2 = face[1][0] - 1
+                f3 = face[2][0] - 1
 
-                v1 = model.vertices[f1 - 1]
-                v2 = model.vertices[f2 - 1]
-                
-                x1 = round((v1[0] + translate[0]) * scale[0])
-                y1 = round((v1[1] + translate[1]) * scale[1])
-                x2 = round((v2[0] + translate[0]) * scale[0])
-                y2 = round((v2[1] + translate[1]) * scale[1])
+                v1 = V3(model.vertices[f1][0], model.vertices[f1][1], model.vertices[f1][2])
+                v2 = V3(model.vertices[f2][0], model.vertices[f2][1], model.vertices[f2][2])
+                v3 = V3(model.vertices[f3][0], model.vertices[f3][1], model.vertices[f3][2])
 
-                self.line(y1, x1, y2, x2)
+                x1 = round((v1.x * scale.x) + translate.x)
+                y1 = round((v1.y * scale.y) + translate.y)
+                z1 = round((v1.z * scale.z) + translate.z)
+
+                x2 = round((v2.x * scale.x) + translate.x)
+                y2 = round((v2.y * scale.y) + translate.y)
+                z2 = round((v2.z * scale.z) + translate.z)
+
+                x3 = round((v3.x * scale.x) + translate.x)
+                y3 = round((v3.y * scale.y) + translate.y)
+                z3 = round((v3.z * scale.z) + translate.z)
+
+                A = V3(x1, y1, z1)
+                B = V3(x2, y2, z2)
+                C = V3(x3, y3, z3)
+
+                self.triangle(A, B, C,
+                    color(
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255)
+                    )
+                )
+
+            else:
+                f1 = face[0][0] - 1
+                f2 = face[1][0] - 1
+                f3 = face[2][0] - 1
+                f4 = face[3][0] - 1   
+
+                v1 = V3(model.vertices[f1][0], model.vertices[f1][1], model.vertices[f1][2])
+                v2 = V3(model.vertices[f2][0], model.vertices[f2][1], model.vertices[f2][2])
+                v3 = V3(model.vertices[f3][0], model.vertices[f3][1], model.vertices[f3][2])
+                v4 = V3(model.vertices[f4][0], model.vertices[f4][1], model.vertices[f4][2])
+
+                x1 = round((v1.x * scale.x) + translate.x)
+                y1 = round((v1.y * scale.y) + translate.y)
+                z1 = round((v1.z * scale.z) + translate.z)
+
+                x2 = round((v2.x * scale.x) + translate.x)
+                y2 = round((v2.y * scale.y) + translate.y)
+                z2 = round((v2.z * scale.z) + translate.z)
+
+                x3 = round((v3.x * scale.x) + translate.x)
+                y3 = round((v3.y * scale.y) + translate.y)
+                z3 = round((v3.z * scale.z) + translate.z)
+
+                x4 = round((v4.x * scale.x) + translate.x)
+                y4 = round((v4.y * scale.y) + translate.y)
+                z4 = round((v4.z * scale.z) + translate.z)
+
+                A = V3(x1, y1, z1)
+                B = V3(x2, y2, z2)
+                C = V3(x3, y3, z3)
+                D = V3(x4, y4, z4)
+
+                self.triangle(A, B, C,
+                    color(
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255)
+                    )
+                )
+
+                self.triangle(A, C, D,
+                    color(
+                    random.randint(0, 255),
+                    random.randint(0, 255),
+                    random.randint(0, 255)
+                    )
+                )
 
     def write(self, filename='out.bmp'):
         f = open(filename, 'bw')
@@ -135,8 +263,8 @@ class Render(object):
         f.write(dword(0))
 
         # pixel data
-        for x in range(self.width):
-            for y in range(self.height):
-                f.write(self.framebuffer[y][x])
+        for x in range(self.height):
+            for y in range(self.width):
+                f.write(self.framebuffer[x][y])
 
         f.close()

@@ -6,7 +6,7 @@
     21 de julio de 2020
 '''
 
-from lib import Render
+from lib import Render, V2, V3
 
 bitmap = Render()
 
@@ -73,10 +73,10 @@ glCreateWindow(1000, 1000)
 glClear()
 
 # Olaf
-# glLoad('./olaf.obj', [-60, 145], [4, 4])
-# glFinish('olaf.bmp')
+glLoad('./olaf.obj', V3(-250, 600, 0), V3(4, 4, 1))
+glFinish('olafRelleno.bmp')
 
 # Sid 
-glLoad('./sid.obj', [15, 1], [30, 30])
-glFinish('sid.bmp')
+# glLoad('./sid.obj', V3(450, 1, 0), V3(30, 30, 1))
+# glFinish('sidRelleno.bmp')
 
